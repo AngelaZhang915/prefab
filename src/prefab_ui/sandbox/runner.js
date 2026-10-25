@@ -13,7 +13,7 @@
  * on first run). No write, env, or FFI access.
  */
 
-import { loadPyodide } from "npm:pyodide@0.27.4";
+import { loadPyodide } from "npm:pyodide@0.27.8";
 import { readLines } from "https://deno.land/std@0.224.0/io/read_lines.ts";
 import { walk } from "https://deno.land/std@0.224.0/fs/walk.ts";
 
@@ -21,8 +21,14 @@ import { walk } from "https://deno.land/std@0.224.0/fs/walk.ts";
 const realLog = console.log;
 console.log = (...args) => console.error("[pyodide]", ...args);
 
-const pyodide = await loadPyodide();
-await pyodide.loadPackage(["pydantic"]);
+const pyodide = await loadPyodide({
+  // Retain the pre-0.27.7 event loop without requiring stack switching.
+  enableRunUntilComplete: false,
+});
+await pyodide.loadPackage(["pydantic"], {
+  messageCallback: (message) => console.error("[pyodide]", message),
+  errorCallback: (message) => console.error("[pyodide]", message),
+});
 
 console.log = realLog;
 
