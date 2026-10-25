@@ -57,9 +57,11 @@ LineChart(
 ```
 
 For example, `chart_series` in app state can contain
-`{"dataKey": "revenue", "label": "Revenue", "visible": True}`. Changing
-`visible` updates the plotted series. Other chart types still take static
-`ChartSeries` lists.
+`{"dataKey": "revenue", "label": "Revenue", "color": "var(--chart-1)", "visible": True}`.
+Changing `visible` updates the plotted series. Automatic palette colors follow
+the resolved list's order; set `color` on each stored series when its color must
+stay the same across filtering or reordering. Other chart types still take
+static `ChartSeries` lists.
 
 **AreaChart** — filled area under lines.
 - `curve`, `show_dots` (same as LineChart)

@@ -120,6 +120,57 @@ describe("LineChart reactive series", () => {
     }
   });
 
+  it("preserves explicit series colors when filtering and reordering", async () => {
+    const container = document.createElement("div");
+    document.body.append(container);
+    const root = createRoot(container);
+    const series = [
+      { dataKey: "revenue", color: "var(--chart-1)", visible: true },
+      { dataKey: "costs", color: "var(--chart-2)", visible: true },
+    ];
+    async function render() {
+      const props = interpolateProps(
+        {
+          data,
+          series: "{{ chart_series | selectattr:'visible' }}",
+          animate: false,
+        },
+        { chart_series: series },
+      );
+      await act(async () => {
+        root.render(
+          React.createElement(
+            PrefabLineChart,
+            props as React.ComponentProps<typeof PrefabLineChart>,
+          ),
+        );
+      });
+      return Array.from(container.querySelectorAll("style"))
+        .map((style) => style.textContent)
+        .join("\n");
+    }
+    try {
+      const initialCss = await render();
+      expect(initialCss).toContain("--color-revenue: var(--chart-1)");
+      expect(initialCss).toContain("--color-costs: var(--chart-2)");
+      series.reverse();
+      const reorderedCss = await render();
+      expect(reorderedCss).toContain("--color-revenue: var(--chart-1)");
+      expect(reorderedCss).toContain("--color-costs: var(--chart-2)");
+      series[1].visible = false;
+      const filteredCss = await render();
+      expect(container.querySelectorAll(".recharts-line")).toHaveLength(1);
+      expect(filteredCss).not.toContain("--color-revenue:");
+      expect(filteredCss).toContain("--color-costs: var(--chart-2)");
+      expect(
+        container.querySelector(".recharts-line path")?.getAttribute("stroke"),
+      ).toBe("var(--color-costs)");
+    } finally {
+      await act(async () => root.unmount());
+      container.remove();
+    }
+  });
+
   it("waits for an unresolved series template", async () => {
     const container = document.createElement("div");
     const root = createRoot(container);
