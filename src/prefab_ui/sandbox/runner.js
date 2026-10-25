@@ -21,7 +21,13 @@ import { walk } from "https://deno.land/std@0.224.0/fs/walk.ts";
 const realLog = console.log;
 console.log = (...args) => console.error("[pyodide]", ...args);
 
+let bootstrapping = true;
 const pyodide = await loadPyodide({
+  // Cold wheel downloads bypass loadPackage's progress callbacks.
+  stdout: (message) => {
+    if (bootstrapping) console.error("[pyodide]", message);
+    else realLog(message);
+  },
   // Retain the pre-0.27.7 event loop without requiring stack switching.
   enableRunUntilComplete: false,
 });
@@ -30,6 +36,7 @@ await pyodide.loadPackage(["pydantic"], {
   errorCallback: (message) => console.error("[pyodide]", message),
 });
 
+bootstrapping = false;
 console.log = realLog;
 
 // Mount Prefab source into Pyodide's virtual filesystem.

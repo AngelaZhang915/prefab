@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+import shutil
 import subprocess
+from pathlib import Path
 from unittest.mock import MagicMock
+
+import pytest
 
 from prefab_ui.sandbox._pyodide import PyodideSandbox
 
@@ -42,3 +46,17 @@ def test_stop_kills_process_when_graceful_shutdown_times_out() -> None:
     process.stdin.close.assert_called_once_with()
     process.stdout.close.assert_called_once_with()
     process.stderr.close.assert_called_once_with()
+
+
+@pytest.mark.timeout(120)
+@pytest.mark.skipif(shutil.which("deno") is None, reason="Deno not installed")
+async def test_cold_start_keeps_download_logs_out_of_responses(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("DENO_DIR", str(tmp_path / "deno-cache"))
+    async with PyodideSandbox() as sandbox:
+        for text in ("first", "second"):
+            result = await sandbox.run(
+                f"from prefab_ui.components import Text\nview = Text({text!r})"
+            )
+            assert result["view"]["content"] == text
