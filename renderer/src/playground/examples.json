@@ -762,7 +762,7 @@
   {
     "title": "Python icon=\"python\"",
     "category": "Components",
-    "code": "from prefab_ui.components import DataTable, DataTableColumn\n\nDataTable(\n    columns=[\n        DataTableColumn(key=\"name\", header=\"Name\", sortable=True),\n        DataTableColumn(key=\"species\", header=\"Species\"),\n        DataTableColumn(key=\"status\", header=\"Status\"),\n    ],\n    rows=[\n        {\"name\": \"Arthur Dent\", \"species\": \"Human\", \"status\": \"Confused\"},\n        {\"name\": \"Ford Prefect\", \"species\": \"Betelgeusian\", \"status\": \"Drinking\"},\n        {\"name\": \"Zaphod\", \"species\": \"Betelgeusian\", \"status\": \"Presidential\"},\n        {\"name\": \"Trillian\", \"species\": \"Human\", \"status\": \"Navigating\"},\n        {\"name\": \"Marvin\", \"species\": \"Android\", \"status\": \"Depressed\"},\n    ],\n    search=True,\n)"
+    "code": "from prefab_ui.components import DataTable, DataTableColumn\n\nDataTable(\n    columns=[\n        DataTableColumn(key=\"name\", header=\"Name\", sortable=True),\n        DataTableColumn(key=\"species\", header=\"Species\"),\n        DataTableColumn(key=\"status\", header=\"Status\"),\n    ],\n    rows=[\n        {\"name\": \"Arthur Dent\", \"species\": \"Human\", \"status\": \"Confused\"},\n        {\"name\": \"Ford Prefect\", \"species\": \"Betelgeusian\", \"status\": \"Drinking\"},\n        {\"name\": \"Zaphod\", \"species\": \"Betelgeusian\", \"status\": \"Presidential\"},\n        {\"name\": \"Trillian\", \"species\": \"Human\", \"status\": \"Navigating\"},\n        {\"name\": \"Marvin\", \"species\": \"Android\", \"status\": \"Depressed\"},\n    ],\n    search=True,\n    search_placeholder=\"Search the crew...\",\n)"
   },
   {
     "title": "Python icon=\"python\"",
@@ -1238,6 +1238,11 @@
     "title": "Python icon=\"python\"",
     "category": "Components",
     "code": "from prefab_ui.components.charts import LineChart, ChartSeries\n\ndata = [\n    {\"month\": \"Jan\", \"desktop\": 186, \"mobile\": 80},\n    {\"month\": \"Feb\", \"desktop\": 305, \"mobile\": 200},\n    {\"month\": \"Mar\", \"desktop\": 237, \"mobile\": 120},\n    {\"month\": \"Apr\", \"desktop\": 73, \"mobile\": 190},\n    {\"month\": \"May\", \"desktop\": 209, \"mobile\": 130},\n    {\"month\": \"Jun\", \"desktop\": 214, \"mobile\": 140},\n]\n\nLineChart(\n    data=data,\n    series=[\n        ChartSeries(data_key=\"desktop\", label=\"Desktop\"),\n        ChartSeries(data_key=\"mobile\", label=\"Mobile\"),\n    ],\n    x_axis=\"month\",\n    show_legend=True,\n)"
+  },
+  {
+    "title": "Reactive Series",
+    "category": "Components",
+    "code": "from prefab_ui.app import PrefabApp\nfrom prefab_ui.components.charts import LineChart\nfrom prefab_ui.rx import Rx\n\ndata = [\n    {\"month\": \"Jan\", \"desktop\": 186, \"mobile\": 80},\n    {\"month\": \"Feb\", \"desktop\": 305, \"mobile\": 200},\n]\n\napp = PrefabApp(\n    state={\n        \"chart_series\": [\n            {\n                \"dataKey\": \"desktop\",\n                \"label\": \"Desktop\",\n                \"color\": \"var(--chart-1)\",\n                \"visible\": True,\n            },\n            {\n                \"dataKey\": \"mobile\",\n                \"label\": \"Mobile\",\n                \"color\": \"var(--chart-2)\",\n                \"visible\": False,\n            },\n        ]\n    },\n    view=LineChart(\n        data=data,\n        series=Rx(\"chart_series\").selectattr(\"visible\"),\n        x_axis=\"month\",\n    ),\n)"
   },
   {
     "title": "Python {5} icon=\"python\"",
@@ -2107,7 +2112,7 @@
   {
     "title": "Python icon=\"python\"",
     "category": "Concepts",
-    "code": "from prefab_ui.components import Button, Row, Badge\nfrom prefab_ui.actions import SetState\n\n\nwith Row(gap=3, align=\"center\"):\n    Button(\"-\", variant=\"outline\", on_click=SetState(\"count\", \"{{ count - 1 }}\"))\n    Badge(\"{{ count }}\", variant=\"{{ count > 0 ? 'success' : 'destructive' }}\")\n    Button(\"+\", variant=\"outline\", on_click=SetState(\"count\", \"{{ count + 1 }}\"))"
+    "code": "from prefab_ui.app import PrefabApp\nfrom prefab_ui.components import Button, Row, Badge\nfrom prefab_ui.actions import SetState\n\n\nwith PrefabApp(state={\"count\": 0}):\n    with Row(gap=3, align=\"center\"):\n        Button(\"-\", variant=\"outline\", on_click=SetState(\"count\", \"{{ count - 1 }}\"))\n        Badge(\"{{ count }}\", variant=\"{{ count > 0 ? 'success' : 'destructive' }}\")\n        Button(\"+\", variant=\"outline\", on_click=SetState(\"count\", \"{{ count + 1 }}\"))"
   },
   {
     "title": "from prefab_ui.rx import Rx",

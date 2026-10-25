@@ -247,7 +247,7 @@ export function PrefabPopover({
       <PopoverTrigger>{trigger}</PopoverTrigger>
       <PopoverContent side={side} className="w-80">
         <OverlayProvider close={() => setOpen(false)}>
-        <div className="flex min-h-0 flex-col gap-2.5">
+          <div className="flex min-h-0 flex-col gap-2.5">
             {title && (
               <div className="space-y-1">
                 <h4 className="font-medium leading-none">{title}</h4>
