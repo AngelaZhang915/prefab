@@ -105,6 +105,24 @@ class TestLineChart:
         assert j["type"] == "LineChart"
         assert j["xAxis"] == "month"
 
+    @pytest.mark.parametrize(
+        ("series", "expected"),
+        [
+            (
+                "{{ chart_series | selectattr:'visible' }}",
+                "{{ chart_series | selectattr:'visible' }}",
+            ),
+            (
+                Rx("chart_series").selectattr("visible"),
+                "{{ chart_series | selectattr:visible }}",
+            ),
+        ],
+    )
+    def test_serializes_reactive_series(self, series, expected):
+        chart = LineChart(data=SAMPLE_DATA, series=series, x_axis="month")
+
+        assert chart.to_json()["series"] == expected
+
     def test_curve(self):
         j = LineChart(
             data=SAMPLE_DATA, series=SERIES, curve="smooth", show_dots=True
