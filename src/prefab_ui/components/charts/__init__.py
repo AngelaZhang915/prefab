@@ -166,7 +166,7 @@ class LineChart(Component):
 
     Args:
         data: Row data or reactive interpolation reference.
-        series: Series to render as lines, or a sole ``{{ ... }}`` template
+        series: Series to render as lines, or a sole `{{ ... }}` template
             (e.g. a visibility-filtered list from state).
         x_axis: Data key for x-axis labels.
         height: Chart height in pixels.

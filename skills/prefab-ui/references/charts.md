@@ -42,6 +42,24 @@ All accept `data`, `series`, `x_axis`, `height` (default 300),
 **LineChart** — connected data points.
 - `curve`: "linear", "smooth", or "step"
 - `show_dots`: show points at data values
+- `series`: a static `list[ChartSeries]`, or an `Rx` / sole interpolation
+  template resolving to a list of series dictionaries. Use wire keys such
+  as `dataKey` in dictionaries stored in state.
+
+```python
+from prefab_ui.rx import Rx
+
+LineChart(
+    data=monthly_data,
+    series=Rx("chart_series").selectattr("visible"),
+    x_axis="month",
+)
+```
+
+For example, `chart_series` in app state can contain
+`{"dataKey": "revenue", "label": "Revenue", "visible": True}`. Changing
+`visible` updates the plotted series. Other chart types still take static
+`ChartSeries` lists.
 
 **AreaChart** — filled area under lines.
 - `curve`, `show_dots` (same as LineChart)

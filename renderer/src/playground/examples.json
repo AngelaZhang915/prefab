@@ -1240,6 +1240,11 @@
     "code": "from prefab_ui.components.charts import LineChart, ChartSeries\n\ndata = [\n    {\"month\": \"Jan\", \"desktop\": 186, \"mobile\": 80},\n    {\"month\": \"Feb\", \"desktop\": 305, \"mobile\": 200},\n    {\"month\": \"Mar\", \"desktop\": 237, \"mobile\": 120},\n    {\"month\": \"Apr\", \"desktop\": 73, \"mobile\": 190},\n    {\"month\": \"May\", \"desktop\": 209, \"mobile\": 130},\n    {\"month\": \"Jun\", \"desktop\": 214, \"mobile\": 140},\n]\n\nLineChart(\n    data=data,\n    series=[\n        ChartSeries(data_key=\"desktop\", label=\"Desktop\"),\n        ChartSeries(data_key=\"mobile\", label=\"Mobile\"),\n    ],\n    x_axis=\"month\",\n    show_legend=True,\n)"
   },
   {
+    "title": "Reactive Series",
+    "category": "Components",
+    "code": "from prefab_ui.app import PrefabApp\nfrom prefab_ui.components.charts import LineChart\nfrom prefab_ui.rx import Rx\n\ndata = [\n    {\"month\": \"Jan\", \"desktop\": 186, \"mobile\": 80},\n    {\"month\": \"Feb\", \"desktop\": 305, \"mobile\": 200},\n]\n\napp = PrefabApp(\n    state={\n        \"chart_series\": [\n            {\"dataKey\": \"desktop\", \"label\": \"Desktop\", \"visible\": True},\n            {\"dataKey\": \"mobile\", \"label\": \"Mobile\", \"visible\": False},\n        ]\n    },\n    view=LineChart(\n        data=data,\n        series=Rx(\"chart_series\").selectattr(\"visible\"),\n        x_axis=\"month\",\n    ),\n)"
+  },
+  {
     "title": "Python {5} icon=\"python\"",
     "category": "Components",
     "code": "LineChart(\n    data=data,\n    series=[ChartSeries(data_key=\"desktop\", label=\"Desktop\")],\n    x_axis=\"month\",\n    show_grid=False,\n)"
