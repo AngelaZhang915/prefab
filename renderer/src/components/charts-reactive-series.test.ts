@@ -7,6 +7,7 @@ import { lineChartSchema } from "../schemas/chart";
 import { PrefabLineChart } from "./charts";
 
 beforeEach(() => {
+  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   vi.stubGlobal("requestAnimationFrame", () => 1);
   vi.stubGlobal("cancelAnimationFrame", () => {});
@@ -46,7 +47,14 @@ beforeEach(() => {
   );
 });
 
-afterEach(() => {
+afterEach(async () => {
+  // Recharts' Redux store batches with a fallback timeout even when RAF is
+  // stubbed. Drain it after unmount while its cancellation globals still exist.
+  await act(async () => {
+    await vi.runAllTimersAsync();
+  });
+  expect(vi.getTimerCount()).toBe(0);
+  vi.useRealTimers();
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
 });
