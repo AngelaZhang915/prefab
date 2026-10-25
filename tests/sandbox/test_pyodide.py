@@ -225,3 +225,27 @@ async def test_cold_start_keeps_download_logs_out_of_responses(
                 f"from prefab_ui.components import Text\nview = Text({text!r})"
             )
             assert result["view"]["content"] == text
+
+
+async def test_startup_failure_keeps_cause_and_traceback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    process = MagicMock(spec=subprocess.Popen)
+    process.stderr = MagicMock()
+    process.stderr.readline.side_effect = [
+        b"original startup cause\n",
+        b"x" * 3000 + b"\n",
+        b"last traceback frame\n",
+        b"",
+    ]
+    process.poll.return_value = 1
+    monkeypatch.setattr("prefab_ui.sandbox._pyodide.shutil.which", lambda _: "deno")
+    monkeypatch.setattr(
+        "prefab_ui.sandbox._pyodide.subprocess.Popen", lambda *args, **kwargs: process
+    )
+    sandbox = PyodideSandbox()
+
+    with pytest.raises(RuntimeError, match="original startup cause") as exc:
+        await sandbox._start()
+
+    assert "last traceback frame" in str(exc.value)

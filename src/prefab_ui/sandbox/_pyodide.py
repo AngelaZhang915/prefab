@@ -101,7 +101,9 @@ class PyodideSandbox:
             line = await loop.run_in_executor(None, proc_stderr.readline)
             if not line and proc.poll() is not None:
                 err = "\n".join(stderr_lines)
-                raise RuntimeError(f"Pyodide sandbox failed to start:\n{err[-1000:]}")
+                if len(err) > 2000:
+                    err = f"{err[:1000]}\n...\n{err[-1000:]}"
+                raise RuntimeError(f"Pyodide sandbox failed to start:\n{err}")
             decoded = line.decode().rstrip()
             stderr_lines.append(decoded)
             if "pyodide:ready" in decoded:
