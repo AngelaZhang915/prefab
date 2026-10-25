@@ -1,25 +1,21 @@
 // @vitest-environment jsdom
-
 import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Mermaid } from "./mermaid";
 
-const { renderDiagram } = vi.hoisted(() => ({ renderDiagram: vi.fn() }));
-
-vi.mock("mermaid", () => ({
-  default: { initialize: vi.fn(), render: renderDiagram },
-}));
+const mocks = vi.hoisted(() => ({ render: vi.fn(), initialize: vi.fn() }));
+vi.mock("mermaid", () => ({ default: mocks }));
 
 let container: HTMLDivElement;
 let root: Root;
 
 beforeEach(() => {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
-  renderDiagram.mockReset();
-  renderDiagram.mockResolvedValue({ svg: '<svg data-diagram="ready"></svg>' });
+  mocks.render.mockReset();
+  mocks.render.mockResolvedValue({ svg: '<svg data-testid="diagram"></svg>' });
   container = document.createElement("div");
-  document.body.appendChild(container);
+  document.body.append(container);
   root = createRoot(container);
 });
 
@@ -29,38 +25,51 @@ afterEach(async () => {
   vi.unstubAllGlobals();
 });
 
-async function updateChart(chart: string) {
+async function show(chart: string) {
   await act(async () => root.render(createElement(Mermaid, { chart })));
 }
 
-describe("clearing Mermaid diagrams", () => {
-  it.each(["", " \n\t "])(
-    "removes a rendered diagram for %j",
-    async (empty) => {
-      await updateChart("graph TD; A-->B");
+describe("Mermaid updates", () => {
+  it.each(["", "  \n ", " \n\t "])(
+    "clears an existing diagram for %j",
+    async (chart) => {
+      await show("graph TD; A-->B");
       expect(container.querySelector("svg")).not.toBeNull();
-
-      await updateChart(empty);
-
+      await show(chart);
       expect(container.querySelector("svg")).toBeNull();
       expect(container.textContent).toBe("");
-      expect(renderDiagram).toHaveBeenCalledTimes(1);
+      expect(mocks.render).toHaveBeenCalledTimes(1);
     },
   );
 
+  it("recovers from invalid source when a valid diagram arrives", async () => {
+    mocks.render.mockRejectedValueOnce(new Error("invalid diagram"));
+    await show("invalid");
+    expect(container.querySelector("pre")?.textContent).toBe("invalid");
+    await show("graph TD; A-->B");
+    expect(container.querySelector("svg")).not.toBeNull();
+    expect(container.querySelector("pre")).toBeNull();
+  });
+
+  it("clears the fallback when invalid source becomes empty", async () => {
+    mocks.render.mockRejectedValueOnce(new Error("invalid diagram"));
+    await show("invalid");
+    await show("");
+    expect(container.querySelector("pre")).toBeNull();
+    expect(container.textContent).toBe("");
+  });
+
   it("does not restore an in-flight diagram after clearing", async () => {
     let finish!: (result: { svg: string }) => void;
-    renderDiagram.mockReturnValueOnce(
-      new Promise<{ svg: string }>((resolve) => {
+    mocks.render.mockReturnValueOnce(
+      new Promise((resolve) => {
         finish = resolve;
       }),
     );
-    await updateChart("graph TD; A-->B");
-    expect(renderDiagram).toHaveBeenCalledTimes(1);
-
-    await updateChart("");
+    await show("graph TD; A-->B");
+    expect(mocks.render).toHaveBeenCalledTimes(1);
+    await show("");
     await act(async () => finish({ svg: "<svg></svg>" }));
-
     expect(container.querySelector("svg")).toBeNull();
     expect(container.textContent).toBe("");
   });
